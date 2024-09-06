@@ -21,16 +21,16 @@ var previously_floored := false
 
 var jump_single := true
 var jump_double := false
+var control_enabled := true;
 
 var container_offset = Vector3(1.2, -1.1, -2.75)
 
 var tween:Tween
 
-@onready var camera = $Head/Camera
-@onready var raycast = $Head/Camera/RayCast
-@onready var container = $Head/Camera/SubViewportContainer/SubViewport/CameraItem/Container
-@onready var sound_footsteps = $SoundFootsteps
-@onready var blaster_cooldown = $Cooldown
+@onready var camera = get_node('Head/Camera')
+@onready var raycast = get_node('Head/Camera/RayCast')
+@onready var container = get_node('Head/Camera/SubViewportContainer/SubViewport/CameraItem/Container')
+@onready var sound_footsteps = get_node('SoundFootsteps')
 
 @export var crosshair:TextureRect
 
@@ -102,6 +102,8 @@ func _input(event):
 		rotation_target.x -= event.relative.y / mouse_sensitivity
 
 func handle_controls(_delta):
+	if not control_enabled:
+		return
 	
 	# Mouse capture
 	
@@ -128,9 +130,9 @@ func handle_controls(_delta):
 	rotation_target -= Vector3(-rotation_input.y, -rotation_input.x, 0).limit_length(1.0) * gamepad_sensitivity
 	rotation_target.x = clamp(rotation_target.x, deg_to_rad(-90), deg_to_rad(90))
 	
-	# Shooting
+	# interacting
 	
-	action_shoot()
+	action_interact()
 	
 	# Jumping
 	
@@ -166,12 +168,36 @@ func action_jump():
 	jump_single = false;
 	jump_double = false;
 
-# Shooting
+# interacting
 
-func action_shoot():
+func action_interact():
 	
-	if Input.is_action_pressed("shoot"):
-	
-		if !blaster_cooldown.is_stopped(): return # Cooldown for shooting
+	if Input.is_action_pressed("interact"):
 		
-		# Shoot the weapon, amount based on shot count
+		# interact the weapon, amount based on shot count
+
+		var beam_node = get_beam_node()
+		if beam_node != null:
+			if beam_node.has_method("handle_interact"):
+				beam_node.handle_interact();
+
+func get_beam_node():
+	var position_from = camera.project_ray_origin(get_viewport().size/2) + Vector3.DOWN * 0.1
+	var position_to = position_from + camera.project_ray_normal(get_viewport().size/2) * 100
+	return get_beam_node_helper(position_from, position_to)
+
+func get_beam_node_helper(position_from, position_to):
+	var ray_from = position_from
+	var ray_to = position_to
+	var space_state = get_world_3d().direct_space_state
+	var ray = PhysicsRayQueryParameters3D.new()
+	# ray.collision_mask = beam_collision_mask
+	ray.from = ray_from
+	ray.to = ray_to
+	var collision = space_state.intersect_ray(ray)
+
+	if collision.has('collider'):		
+		return collision['collider']
+
+	return null
+
