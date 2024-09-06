@@ -1,0 +1,124 @@
+[gd_scene load_steps=10 format=3 uid="uid://dxvvlck8lej3f"]
+
+[ext_resource type="Environment" uid="uid://jvmpkdwaeaq" path="res://scenes/main-environment.tres" id="1_q8fpv"]
+[ext_resource type="PackedScene" uid="uid://dl2ed4gkybggf" path="res://objects/player.tscn" id="2_elriq"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="3_s8mkj"]
+[ext_resource type="PackedScene" uid="uid://bvx5cvigosg0s" path="res://objects/platform_large_grass.tscn" id="7_wggef"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ja6rx"]
+size = Vector3(3, 1, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3408q"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_buk2s"]
+albedo_color = Color(0.235666, 0.339992, 0.647597, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_oqd2t"]
+material = SubResource("StandardMaterial3D_buk2s")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5tpcn"]
+size = Vector3(0.503845, 1, 0.501709)
+
+[node name="main" type="Node3D"]
+
+[node name="ambience" type="WorldEnvironment" parent="."]
+environment = ExtResource("1_q8fpv")
+
+[node name="player" parent="." node_paths=PackedStringArray("crosshair") instance=ExtResource("2_elriq")]
+crosshair = NodePath("../hud/crosshair")
+
+[node name="sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.422618, -0.694272, 0.582563, 0, 0.642788, 0.766044, -0.906308, 0.323744, -0.271654, 0, 0, 0)
+shadow_enabled = true
+shadow_opacity = 0.75
+
+[node name="hud" type="CanvasLayer" parent="."]
+script = ExtResource("3_s8mkj")
+
+[node name="crosshair" type="TextureRect" parent="hud"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.35, 0.35)
+pivot_offset = Vector2(64, 64)
+metadata/_edit_use_anchors_ = true
+
+[node name="world" type="Node" parent="."]
+
+[node name="platform-large-grass" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.65829, 0)
+
+[node name="submarine" type="StaticBody3D" parent="world"]
+
+[node name="collider" type="CollisionShape3D" parent="world/submarine"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+shape = SubResource("BoxShape3D_ja6rx")
+
+[node name="meshes" type="Node3D" parent="world/submarine"]
+
+[node name="greybox" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox2" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -1, 0)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox3" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -1, 0)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox4" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -1, 1)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox5" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 1)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox6" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -1, 1)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox7" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -1, -1)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox8" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -1)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="greybox9" type="MeshInstance3D" parent="world/submarine/meshes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -1, -1)
+mesh = SubResource("BoxMesh_3408q")
+skeleton = NodePath("../../../..")
+
+[node name="joystick" type="StaticBody3D" parent="world/submarine"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.434309, -1.26203)
+
+[node name="joystick" type="Node3D" parent="world/submarine/joystick"]
+
+[node name="greybox" type="MeshInstance3D" parent="world/submarine/joystick/joystick"]
+transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 0, 0)
+mesh = SubResource("BoxMesh_oqd2t")
+skeleton = NodePath("../../../..")
+
+[node name="collider" type="CollisionShape3D" parent="world/submarine/joystick"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00088501, 0, 0.00842285)
+shape = SubResource("BoxShape3D_5tpcn")
