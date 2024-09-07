@@ -102,8 +102,6 @@ func _input(event):
 		rotation_target.x -= event.relative.y / mouse_sensitivity
 
 func handle_controls(_delta):
-	if not control_enabled:
-		return
 	
 	# Mouse capture
 	
@@ -117,18 +115,21 @@ func handle_controls(_delta):
 		
 		input_mouse = Vector2.ZERO
 	
-	# Movement
-	
-	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	
-	movement_velocity = Vector3(input.x, 0, input.y).normalized() * movement_speed
-	
 	# Rotation
 	
 	var rotation_input := Input.get_vector("camera_right", "camera_left", "camera_down", "camera_up")
 	
 	rotation_target -= Vector3(-rotation_input.y, -rotation_input.x, 0).limit_length(1.0) * gamepad_sensitivity
 	rotation_target.x = clamp(rotation_target.x, deg_to_rad(-90), deg_to_rad(90))
+	
+	# Movement
+	
+	if not control_enabled:
+		return
+
+	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	
+	movement_velocity = Vector3(input.x, 0, input.y).normalized() * movement_speed
 	
 	# interacting
 	
