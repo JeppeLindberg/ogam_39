@@ -31,6 +31,7 @@ var tween:Tween
 @onready var raycast = get_node('Head/Camera/RayCast')
 @onready var container = get_node('Head/Camera/SubViewportContainer/SubViewport/CameraItem/Container')
 @onready var sound_footsteps = get_node('SoundFootsteps')
+@onready var main = get_node('/root/main')
 
 @export var crosshair:TextureRect
 
@@ -183,22 +184,6 @@ func action_interact():
 				beam_node.handle_interact();
 
 func get_beam_node():
-	var position_from = camera.project_ray_origin(get_viewport().size/2) + Vector3.DOWN * 0.1
+	var position_from = camera.project_ray_origin(get_viewport().size/2)
 	var position_to = position_from + camera.project_ray_normal(get_viewport().size/2) * 100
-	return get_beam_node_helper(position_from, position_to)
-
-func get_beam_node_helper(position_from, position_to):
-	var ray_from = position_from
-	var ray_to = position_to
-	var space_state = get_world_3d().direct_space_state
-	var ray = PhysicsRayQueryParameters3D.new()
-	# ray.collision_mask = beam_collision_mask
-	ray.from = ray_from
-	ray.to = ray_to
-	var collision = space_state.intersect_ray(ray)
-
-	if collision.has('collider'):		
-		return collision['collider']
-
-	return null
-
+	return main.get_beam_node(position_from, position_to)
