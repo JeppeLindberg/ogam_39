@@ -1,41 +1,52 @@
-[gd_scene load_steps=15 format=3 uid="uid://dxvvlck8lej3f"]
+[gd_scene load_steps=10 format=3 uid="uid://dxvvlck8lej3f"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_jrqfm"]
 [ext_resource type="Environment" uid="uid://jvmpkdwaeaq" path="res://scenes/main-environment.tres" id="1_q8fpv"]
-[ext_resource type="PackedScene" uid="uid://dl2ed4gkybggf" path="res://objects/player.tscn" id="2_elriq"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2_qjbtc"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="3_s8mkj"]
-[ext_resource type="Script" path="res://scripts/submarine.gd" id="5_pjovl"]
-[ext_resource type="Script" path="res://scripts/joystick.gd" id="5_qpejf"]
+[ext_resource type="Script" path="res://scripts/auto_camera.gd" id="6_mpkmx"]
 [ext_resource type="PackedScene" uid="uid://bvx5cvigosg0s" path="res://objects/platform_large_grass.tscn" id="7_wggef"]
 
-[sub_resource type="Curve" id="Curve_p6046"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 2.6034, 0.0, 0, 0]
-point_count = 2
+[sub_resource type="Curve" id="Curve_b0p4s"]
+_data = [Vector2(0, 0.157722), 0.0, 0.0, 0, 0, Vector2(0.254902, 0.0556283), 0.0, 0.0, 0, 0, Vector2(1, 1), 2.71188, 0.0, 0, 0]
+point_count = 3
 
-[sub_resource type="BoxMesh" id="BoxMesh_0m8bj"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_yh2iq"]
+size = Vector3(2.27301, 0.203125, 2.34314)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_ja6rx"]
-size = Vector3(3, 1, 3)
-
-[sub_resource type="BoxMesh" id="BoxMesh_3408q"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_buk2s"]
-albedo_color = Color(0.235666, 0.339992, 0.647597, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_oqd2t"]
-material = SubResource("StandardMaterial3D_buk2s")
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_5tpcn"]
-size = Vector3(0.503845, 1, 0.501709)
+[sub_resource type="PrismMesh" id="PrismMesh_rectg"]
 
 [node name="main" type="Node3D"]
 script = ExtResource("1_jrqfm")
 
+[node name="player" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.80138, 0)
+linear_damp = 10.0
+angular_damp = 1.0
+script = ExtResource("2_qjbtc")
+self_righting_torque = 0.1
+self_righting_torque_max = 0.1
+angular_damp_mult = 5.0
+angular_damp_curve = SubResource("Curve_b0p4s")
+
+[node name="forward" type="Node3D" parent="player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="up" type="Node3D" parent="player"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 1, 0.0502861)
+
+[node name="velocity_direction" type="Node3D" parent="player"]
+
+[node name="collider" type="CollisionShape3D" parent="player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0387268, -0.0732422, -0.00469971)
+shape = SubResource("BoxShape3D_yh2iq")
+
+[node name="mesh" type="MeshInstance3D" parent="player"]
+transform = Transform3D(2.37471, 0, 0, 0, 0.350824, 0, 0, 0, 2.37471, 0, 0, 0)
+mesh = SubResource("PrismMesh_rectg")
+
 [node name="ambience" type="WorldEnvironment" parent="."]
 environment = ExtResource("1_q8fpv")
-
-[node name="player" parent="." node_paths=PackedStringArray("crosshair") instance=ExtResource("2_elriq")]
-crosshair = NodePath("../hud/crosshair")
 
 [node name="sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.422618, -0.694272, 0.582563, 0, 0.642788, 0.766044, -0.906308, 0.323744, -0.271654, 0, 0, 0)
@@ -45,112 +56,14 @@ shadow_opacity = 0.75
 [node name="hud" type="CanvasLayer" parent="."]
 script = ExtResource("3_s8mkj")
 
-[node name="crosshair" type="TextureRect" parent="hud"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-scale = Vector2(0.35, 0.35)
-pivot_offset = Vector2(64, 64)
-metadata/_edit_use_anchors_ = true
-
 [node name="world" type="Node" parent="."]
 
 [node name="platform-large-grass" parent="world" instance=ExtResource("7_wggef")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.52018, -4.38642)
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, 47.3526, -5.62496, 30.8185)
 
-[node name="submarine" type="RigidBody3D" parent="world"]
-axis_lock_angular_x = true
-axis_lock_angular_z = true
-gravity_scale = 0.0
-angular_damp = 10.0
-script = ExtResource("5_pjovl")
-damping_curve = SubResource("Curve_p6046")
-damping_min = 0.1
-damping_max = 10.0
-max_velocity = 3.0
+[node name="camera" type="Camera3D" parent="." node_paths=PackedStringArray("target")]
+transform = Transform3D(0.809489, -0.246694, 0.532795, 0, 0.907448, 0.420165, -0.587136, -0.340119, 0.734569, 4.76281, 5.07279, 6.02987)
+script = ExtResource("6_mpkmx")
+target = NodePath("../player")
 
-[node name="beam_emitter" type="Node3D" parent="world/submarine"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.19209e-07, 0.705443, -1.33052)
-
-[node name="mesh" type="MeshInstance3D" parent="world/submarine/beam_emitter"]
-transform = Transform3D(0.0454858, 0, 0, 0, 0.0454858, 0, 0, 0, 4.70211, 0, 0, -2.15115)
-mesh = SubResource("BoxMesh_0m8bj")
-
-[node name="collider" type="CollisionShape3D" parent="world/submarine"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
-shape = SubResource("BoxShape3D_ja6rx")
-
-[node name="meshes" type="Node3D" parent="world/submarine"]
-
-[node name="greybox" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox2" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -1, 0)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox3" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -1, 0)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox4" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -1, 1)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox5" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 1)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox6" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -1, 1)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox7" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -1, -1)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox8" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -1)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="greybox9" type="MeshInstance3D" parent="world/submarine/meshes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, -1, -1)
-mesh = SubResource("BoxMesh_3408q")
-skeleton = NodePath("../../../..")
-
-[node name="joystick" type="StaticBody3D" parent="world/submarine"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.434309, -1.26203)
-collision_layer = 2
-collision_mask = 2
-script = ExtResource("5_qpejf")
-
-[node name="player_holder" type="Node3D" parent="world/submarine/joystick"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01982, 0.632358)
-
-[node name="joystick" type="Node3D" parent="world/submarine/joystick"]
-
-[node name="greybox" type="MeshInstance3D" parent="world/submarine/joystick/joystick"]
-transform = Transform3D(0.5, 0, 0, 0, 1, 0, 0, 0, 0.5, 0, 0, 0)
-mesh = SubResource("BoxMesh_oqd2t")
-skeleton = NodePath("../../../..")
-
-[node name="collider" type="CollisionShape3D" parent="world/submarine/joystick"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00088501, 0, 0.00842285)
-shape = SubResource("BoxShape3D_5tpcn")
+[editable path="world/platform-large-grass"]
