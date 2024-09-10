@@ -1,32 +1,76 @@
 extends RigidBody3D
 
 @onready var forward = get_node('forward')
-@onready var up = get_node('up')
+@onready var rotation_pivot = get_node('/root/main/rotation_pivot')
 @onready var velocity_direction = get_node('velocity_direction')
+@onready var camera_forward = get_node('/root/main/camera/camera_forward')
+@onready var camera_up = get_node('/root/main/camera/camera_up')
+@onready var follow_up = get_node('follow_up')
 
-@export var self_righting_torque = 10.0
-@export var self_righting_torque_max = 0.2
-@export var angular_damp_mult = 0.1
-@export var angular_damp_curve: Curve
+@export var max_velocity = 0.1
+@export var max_torque = 0.1
+
+@export var forward_acceleration_mult = 0.1
+@export var follow_acceleration_mult = 0.1
+
+var follow_up_offset = Vector3(0, 2, -5)
+var follow_up_delta = Vector3(0, 2, -5)
+
+
+func _ready() -> void:
+	follow_up_delta = Vector3(follow_up.position.x, 0, 0)
+	follow_up.position = Vector3(0, follow_up.position.y, follow_up.position.z)
+	follow_up_offset = follow_up.position
+
+func _process(_delta: float) -> void:	
+	handle_controls(_delta)
+
+func handle_controls(_delta):
+
+	follow_up.position = follow_up_offset
+
+	if Input.is_action_pressed("clockwise"):
+		follow_up.position += follow_up_delta
+	
+	if Input.is_action_pressed("counter_clockwise"):
+		follow_up.position -= follow_up_delta
 
 func _physics_process(_delta):
-	var up_vec = global_position - up.global_position;
-	var forward_vec = global_position - forward.global_position;
+	var forward_vec = forward.global_position - global_position;
+	var follow_vec = camera_forward.global_position - global_position;
 
-	if linear_velocity.length() > 0.01:
-		velocity_direction.look_at(global_position + linear_velocity, up_vec)
+	var forward_acceleration = rad_to_pct(linear_velocity.angle_to(forward_vec)) 
+	var follow_acceleration = clamp(rad_to_pct(linear_velocity.angle_to(follow_vec)) - forward_acceleration, 0, 1)
 
-	var velocity_to_forward_angle = rad_to_deg(linear_velocity.angle_to(forward_vec))
-	var res = rotate_toward_q(Quaternion(velocity_direction.basis), Quaternion(forward.basis), velocity_to_forward_angle)
-	print(res.get_axis())
+	var new_force = forward_vec * forward_acceleration * forward_acceleration_mult + follow_vec * follow_acceleration * follow_acceleration_mult ;
+	if (linear_velocity + new_force).length() > max_velocity:
+		new_force = lerp((linear_velocity + new_force), (linear_velocity + new_force).normalized() * max_velocity, 0.1) - linear_velocity
 
-	var self_righting_torque_vec = res.get_axis() * clamp(self_righting_torque * linear_velocity.length(), 0, self_righting_torque_max);
+	add_constant_force(new_force);
 
-	angular_damp = angular_damp_mult * angular_damp_curve.sample(inverse_lerp(0, 180, velocity_to_forward_angle))
+	var follow_up_vec = follow_up.global_position - global_position;
 
-	add_constant_torque(self_righting_torque_vec);
+	rotation_pivot.global_position = global_position;
+	rotation_pivot.look_at(global_position + forward_vec, follow_up_vec)
+	var input_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
+	rotation_pivot.look_at(global_position + forward_vec, camera_up.global_position)
+	var rotate_forward_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
+	rotation_pivot.look_at(global_position + forward_vec, Vector3.UP)
+	var self_righting_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
+	
+	print(str(input_torque) + ' ' + str(rotate_forward_torque))
+	var new_torque = input_torque + rotate_forward_torque + self_righting_torque
+	if (angular_velocity + new_torque).length() > max_torque:
+		new_torque = lerp((angular_velocity + new_torque), (angular_velocity + new_torque).normalized() * max_torque, 1) - angular_velocity
 
+	add_constant_torque(new_torque)
 
 func rotate_toward_q(from: Quaternion, to: Quaternion, angle: float) -> Quaternion:
 	return from.slerp(to, angle)
 
+func rad_to_pct_vec(rad: Vector3) -> Vector3:
+	var res = Vector3(rad_to_pct(rad.x), rad_to_pct(rad.y), rad_to_pct(rad.z))
+	return res
+
+func rad_to_pct(rad: float) -> float:
+	return rad / (2 * PI)

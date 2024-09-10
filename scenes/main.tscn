@@ -1,15 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://dxvvlck8lej3f"]
+[gd_scene load_steps=9 format=3 uid="uid://dxvvlck8lej3f"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_jrqfm"]
 [ext_resource type="Environment" uid="uid://jvmpkdwaeaq" path="res://scenes/main-environment.tres" id="1_q8fpv"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="2_qjbtc"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="3_s8mkj"]
-[ext_resource type="Script" path="res://scripts/auto_camera.gd" id="6_mpkmx"]
+[ext_resource type="Script" path="res://scripts/camera.gd" id="6_b6agh"]
 [ext_resource type="PackedScene" uid="uid://bvx5cvigosg0s" path="res://objects/platform_large_grass.tscn" id="7_wggef"]
-
-[sub_resource type="Curve" id="Curve_b0p4s"]
-_data = [Vector2(0, 0.157722), 0.0, 0.0, 0, 0, Vector2(0.254902, 0.0556283), 0.0, 0.0, 0, 0, Vector2(1, 1), 2.71188, 0.0, 0, 0]
-point_count = 3
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_yh2iq"]
 size = Vector3(2.27301, 0.203125, 2.34314)
@@ -19,26 +15,28 @@ size = Vector3(2.27301, 0.203125, 2.34314)
 [node name="main" type="Node3D"]
 script = ExtResource("1_jrqfm")
 
+[node name="rotation_pivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.21585, 0)
+
 [node name="player" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.80138, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.21585, 0)
 linear_damp = 10.0
-angular_damp = 1.0
+angular_damp = 10.0
 script = ExtResource("2_qjbtc")
-self_righting_torque = 0.1
-self_righting_torque_max = 0.1
-angular_damp_mult = 5.0
-angular_damp_curve = SubResource("Curve_b0p4s")
+max_velocity = 10.0
+max_torque = 1.0
+forward_acceleration_mult = 2.0
+follow_acceleration_mult = 10.0
 
 [node name="forward" type="Node3D" parent="player"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
 
-[node name="up" type="Node3D" parent="player"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 1, 0.0502861)
-
 [node name="velocity_direction" type="Node3D" parent="player"]
 
+[node name="follow_up" type="Node3D" parent="player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, 0)
+
 [node name="collider" type="CollisionShape3D" parent="player"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0387268, -0.0732422, -0.00469971)
 shape = SubResource("BoxShape3D_yh2iq")
 
 [node name="mesh" type="MeshInstance3D" parent="player"]
@@ -56,14 +54,79 @@ shadow_opacity = 0.75
 [node name="hud" type="CanvasLayer" parent="."]
 script = ExtResource("3_s8mkj")
 
+[node name="camera" type="Node3D" parent="." node_paths=PackedStringArray("target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.21585, 0)
+script = ExtResource("6_b6agh")
+target = NodePath("../player")
+
+[node name="camera" type="Camera3D" parent="camera"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 1, -6)
+
+[node name="camera_forward" type="Node3D" parent="camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="camera_up" type="Node3D" parent="camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
 [node name="world" type="Node" parent="."]
 
 [node name="platform-large-grass" parent="world" instance=ExtResource("7_wggef")]
-transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, 47.3526, -5.62496, 30.8185)
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -1.28171, -5.62496, -1.60439)
 
-[node name="camera" type="Camera3D" parent="." node_paths=PackedStringArray("target")]
-transform = Transform3D(0.809489, -0.246694, 0.532795, 0, 0.907448, 0.420165, -0.587136, -0.340119, 0.734569, 4.76281, 5.07279, 6.02987)
-script = ExtResource("6_mpkmx")
-target = NodePath("../player")
+[node name="platform-large-grass2" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -1.28171, -5.62496, -42.1329)
+
+[node name="platform-large-grass3" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -1.28171, -5.62496, -82.6615)
+
+[node name="platform-large-grass4" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -1.28171, -5.62496, 38.9242)
+
+[node name="platform-large-grass5" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -1.28171, -5.62496, 79.4527)
+
+[node name="platform-large-grass6" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, 39.2468, -5.62496, -1.60439)
+
+[node name="platform-large-grass7" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, 39.2468, -5.62496, -42.1329)
+
+[node name="platform-large-grass8" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, 39.2468, -5.62496, -82.6615)
+
+[node name="platform-large-grass9" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, 39.2468, -5.62496, 38.9242)
+
+[node name="platform-large-grass10" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, 39.2468, -5.62496, 79.4527)
+
+[node name="platform-large-grass11" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -41.8103, -5.62496, -1.60439)
+
+[node name="platform-large-grass12" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -41.8103, -5.62496, -42.1329)
+
+[node name="platform-large-grass13" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -41.8103, -5.62496, -82.6615)
+
+[node name="platform-large-grass14" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -41.8103, -5.62496, 38.9242)
+
+[node name="platform-large-grass15" parent="world" instance=ExtResource("7_wggef")]
+transform = Transform3D(8.10571, 0, 0, 0, 8.10571, 0, 0, 0, 8.10571, -41.8103, -5.62496, 79.4527)
 
 [editable path="world/platform-large-grass"]
+[editable path="world/platform-large-grass2"]
+[editable path="world/platform-large-grass3"]
+[editable path="world/platform-large-grass4"]
+[editable path="world/platform-large-grass5"]
+[editable path="world/platform-large-grass6"]
+[editable path="world/platform-large-grass7"]
+[editable path="world/platform-large-grass8"]
+[editable path="world/platform-large-grass9"]
+[editable path="world/platform-large-grass10"]
+[editable path="world/platform-large-grass11"]
+[editable path="world/platform-large-grass12"]
+[editable path="world/platform-large-grass13"]
+[editable path="world/platform-large-grass14"]
+[editable path="world/platform-large-grass15"]
