@@ -6,6 +6,7 @@ extends RigidBody3D
 @onready var camera_forward = get_node('/root/main/camera/camera_forward')
 @onready var camera_up = get_node('/root/main/camera/camera_up')
 @onready var follow_up = get_node('follow_up')
+@onready var up = get_node('up')
 
 @export var max_velocity = 0.1
 @export var max_torque = 0.1
@@ -37,31 +38,31 @@ func handle_controls(_delta):
 
 func _physics_process(_delta):
 	var forward_vec = forward.global_position - global_position;
-	var follow_vec = camera_forward.global_position - global_position;
+	var camera_forward_vec = camera_forward.global_position - global_position;
 
 	var forward_acceleration = rad_to_pct(linear_velocity.angle_to(forward_vec)) 
-	var follow_acceleration = clamp(rad_to_pct(linear_velocity.angle_to(follow_vec)) - forward_acceleration, 0, 1)
+	var follow_acceleration = clamp(rad_to_pct(linear_velocity.angle_to(camera_forward_vec)) - forward_acceleration, 0, 1)
 
-	var new_force = forward_vec * forward_acceleration * forward_acceleration_mult + follow_vec * follow_acceleration * follow_acceleration_mult ;
+	var new_force = forward_vec * forward_acceleration * forward_acceleration_mult + camera_forward_vec * follow_acceleration * follow_acceleration_mult ;
 	if (linear_velocity + new_force).length() > max_velocity:
 		new_force = lerp((linear_velocity + new_force), (linear_velocity + new_force).normalized() * max_velocity, 0.1) - linear_velocity
 
 	add_constant_force(new_force);
 
 	var follow_up_vec = follow_up.global_position - global_position;
-
-	rotation_pivot.global_position = global_position;
-	rotation_pivot.look_at(global_position + forward_vec, follow_up_vec)
-	var input_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
-	rotation_pivot.look_at(global_position + forward_vec, camera_up.global_position)
-	var rotate_forward_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
-	rotation_pivot.look_at(global_position + forward_vec, Vector3.UP)
-	var self_righting_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
 	
-	print(str(input_torque) + ' ' + str(rotate_forward_torque))
-	var new_torque = input_torque + rotate_forward_torque + self_righting_torque
-	if (angular_velocity + new_torque).length() > max_torque:
-		new_torque = lerp((angular_velocity + new_torque), (angular_velocity + new_torque).normalized() * max_torque, 1) - angular_velocity
+	rotation_pivot.global_position = global_position;
+	# rotation_pivot.look_at(global_position + forward_vec, follow_up_vec)
+	# var input_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
+	rotation_pivot.look_at(camera_forward.global_position, follow_up_vec, true)
+	var camera_forward_torque = rotation_pivot.transform.basis.get_rotation_quaternion().get_euler() - transform.basis.get_rotation_quaternion().get_euler()
+	# rotation_pivot.look_at(global_position + forward_vec, Vector3.UP)
+	# var self_righting_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
+	
+	var new_torque = camera_forward_torque - angular_velocity
+	print(new_torque)
+	# if (angular_velocity + new_torque).length() > max_torque:
+	# 	new_torque = lerp((angular_velocity + new_torque), (angular_velocity + new_torque).normalized() * max_torque, 1) - angular_velocity
 
 	add_constant_torque(new_torque)
 
