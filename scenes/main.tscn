@@ -34,14 +34,14 @@ mesh = SubResource("SphereMesh_7ihwr")
 
 [node name="player" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.21585, 0)
-axis_lock_angular_x = true
 linear_damp = 10.0
-angular_damp = 10.0
+angular_damp = 100.0
 script = ExtResource("2_qjbtc")
 max_velocity = 10.0
-max_torque = 1.0
+max_torque = 10.0
 forward_acceleration_mult = 2.0
 follow_acceleration_mult = 10.0
+camera_forward_torque_mult = 10.0
 
 [node name="forward" type="Node3D" parent="player"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)

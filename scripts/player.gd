@@ -13,9 +13,11 @@ extends RigidBody3D
 
 @export var forward_acceleration_mult = 0.1
 @export var follow_acceleration_mult = 0.1
+@export var camera_forward_torque_mult = 0.1
 
 var follow_up_offset = Vector3(0, 2, -5)
 var follow_up_delta = Vector3(0, 2, -5)
+var use_follow_up = false
 
 
 func _ready() -> void:
@@ -27,14 +29,16 @@ func _process(_delta: float) -> void:
 	handle_controls(_delta)
 
 func handle_controls(_delta):
-
 	follow_up.position = follow_up_offset
+	use_follow_up = false
 
 	if Input.is_action_pressed("clockwise"):
 		follow_up.position += follow_up_delta
+		use_follow_up = true
 	
 	if Input.is_action_pressed("counter_clockwise"):
 		follow_up.position -= follow_up_delta
+		use_follow_up = true
 
 func _physics_process(_delta):
 	var forward_vec = forward.global_position - global_position;
@@ -54,17 +58,20 @@ func _physics_process(_delta):
 	rotation_pivot.global_position = global_position;
 	# rotation_pivot.look_at(global_position + forward_vec, follow_up_vec)
 	# var input_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
-	rotation_pivot.look_at(camera_forward.global_position, follow_up_vec, true)
+	if use_follow_up:
+		rotation_pivot.look_at(camera_forward.global_position, follow_up_vec, true)
+	else:
+		rotation_pivot.look_at(camera_forward.global_position, Vector3.UP, true)
 	var camera_forward_torque = rotation_pivot.transform.basis.get_rotation_quaternion().get_euler() - transform.basis.get_rotation_quaternion().get_euler()
 	# rotation_pivot.look_at(global_position + forward_vec, Vector3.UP)
 	# var self_righting_torque = rotate_toward_q(Quaternion(rotation_pivot.transform.basis), Quaternion(transform.basis), 0.1).get_euler()
 	
-	var new_torque = camera_forward_torque - angular_velocity
+	var new_torque = camera_forward_torque * camera_forward_torque_mult
 	print(new_torque)
-	# if (angular_velocity + new_torque).length() > max_torque:
-	# 	new_torque = lerp((angular_velocity + new_torque), (angular_velocity + new_torque).normalized() * max_torque, 1) - angular_velocity
+	if (angular_velocity + new_torque).length() > max_torque:
+		new_torque = lerp((angular_velocity + new_torque), (angular_velocity + new_torque).normalized() * max_torque, 0.1) - angular_velocity
 
-	add_constant_torque(new_torque)
+	constant_torque = new_torque
 
 func rotate_toward_q(from: Quaternion, to: Quaternion, angle: float) -> Quaternion:
 	return from.slerp(to, angle)
